@@ -151,7 +151,7 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res, next) {
   res.redirect("http://localhost:3000")
 })
 app.get('/fetchImage/:file(*)', (req, res) => {
-  res.sendfile("./images/"+req.params.file);
+  res.sendFile("./images/"+req.params.file);
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
