@@ -5,8 +5,6 @@ import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
 import {writeFileSync} from 'fs'
 
-
-
 const PORT = process.env.PORT|| 3001;
 const app=express()
 app.use(cors())
@@ -151,7 +149,7 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res, next) {
   res.redirect("http://localhost:3000")
 })
 app.get('/fetchImage/:file(*)', (req, res) => {
-  res.sendFile("./images/"+req.params.file);
+  res.sendFile("./images/"+req.params.file,{root:"///opt/render/project/src/"});
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
