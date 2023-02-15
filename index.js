@@ -3,8 +3,7 @@ import cors from "cors"
 import bodyParser from "body-parser"
 import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
-import { createReadStream,readFile,writeFileSync } from 'fs'
-import path from "path"
+import {writeFileSync} from 'fs'
 
 
 
@@ -152,7 +151,7 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res, next) {
   res.redirect("http://localhost:3000")
 })
 app.get('/fetchImage/:file(*)', (req, res) => {
-  res.sendfile(req.params.file);
+  res.sendfile("./images/"+req.params.file);
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
