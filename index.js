@@ -15,6 +15,17 @@ app.listen(PORT,()=>{
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage });
 
+//parte delle auto
+app.get("/auto", async (req,res)=>{
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("auto").find({}).toArray(function(err, result) {
+      if (err) throw err;
+      res.send(result)
+    });
+  });
+})
 //parte dei clienti
 app.get("/dati", async (req,res)=>{
   MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
@@ -161,4 +172,33 @@ app.put("/coordinate", async (req,res)=>{
       res.send(result)
     })
   });
+})
+app.put("/follow", async (req,res)=>{
+  let info=JSON.parse(Object.keys(req.body)[0]);
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("users").find({_id:new ObjectId(info.id)}).toArray(function(err, result) {
+      if(result[0].followers){
+        dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$push:{followers:info.myid}},(err,result)=>{
+          if (err) throw err;
+        })
+      }else{
+        dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{followers:[info.myid]}},(err,result)=>{
+          if (err) throw err;
+        })
+      }
+    })
+    dbo.collection("users").find({_id:new ObjectId(info.myid)}).toArray(function(err, result) {
+      if(result[0].seguiti){
+        dbo.collection("users").updateOne({_id:new ObjectId(info.myid)},{$push:{seguiti:info.id}},(err,result)=>{
+          if (err) throw err;
+        })
+      }else{
+        dbo.collection("users").updateOne({_id:new ObjectId(info.myid)},{$set:{seguiti:[info.id]}},(err,result)=>{
+          if (err) throw err;
+        })
+      }
+    })
+  })
 })
