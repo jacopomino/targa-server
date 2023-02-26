@@ -72,7 +72,6 @@ app.put("/delete-account", async (req,res)=>{
 })
 app.put("/send-message", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
-  console.log(info);
   let obj={}
   let obj2={}
   MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
@@ -88,14 +87,15 @@ app.put("/send-message", async (req,res)=>{
         })
       }else{
         //per me
-        obj[info.id2]=[{me:info.messaggio}]
-        dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj}},(err,result)=>{
+        result[0].chats[info.id2]=[{me:info.messaggio}]
+        obj2=(result[0].chats);
+        dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj2}},(err,result)=>{
           if (err) throw err;
         })
       }
     })
     dbo.collection("users").find({_id:new ObjectId(info.id2)}).toArray(function(err, result) {
-      if(result[0].chats){
+      if(result[0].chats[info.id]){
         //per te
         result[0].chats[info.id].push({te:info.messaggio})
         obj2[info.id]=result[0].chats[info.id]
@@ -104,7 +104,8 @@ app.put("/send-message", async (req,res)=>{
         })
       }else{
         //per te
-        obj2[info.id]=[{te:info.messaggio}]
+        result[0].chats[info.id]=[{te:info.messaggio}]
+        obj2=(result[0].chats);
         dbo.collection("users").updateOne({_id:new ObjectId(info.id2)},{$set:{chats:obj2}},(err,result)=>{
           if (err) throw err;
         })
@@ -158,7 +159,7 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res, next) {
       if (err) throw err;
     })
   });
-  res.redirect("http://localhost:3000")
+  res.redirect("https://targa-af08a.web.app/")
 })
 app.get('/fetchImage/:file(*)', (req, res) => {
   res.sendFile(req.params.file,{root:"///opt/render/project/src/"});
