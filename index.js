@@ -72,13 +72,14 @@ app.put("/delete-account", async (req,res)=>{
 })
 app.put("/send-message", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
+  console.log(info);
   let obj={}
   let obj2={}
   MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
     if (err) throw err;
     var dbo = db.db("targa");
     dbo.collection("users").find({_id:new ObjectId(info.id)}).toArray(function(err, result) {
-      if(result[0].chats){
+      if(result[0].chats[info.id2]){
         //per me
         result[0].chats[info.id2].push({me:info.messaggio})
         obj[info.id2]=result[0].chats[info.id2]
