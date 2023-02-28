@@ -81,15 +81,15 @@ app.put("/send-message", async (req,res)=>{
       if(result[0].chats[info.id2]){
         //per me
         result[0].chats[info.id2].push({me:info.messaggio})
-        obj[info.id2]=result[0].chats[info.id2]
+        obj=result[0].chats
         dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj}},(err,result)=>{
           if (err) throw err;
         })
       }else{
         //per me
         result[0].chats[info.id2]=[{me:info.messaggio}]
-        obj2=(result[0].chats);
-        dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj2}},(err,result)=>{
+        obj=(result[0].chats);
+        dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj}},(err,result)=>{
           if (err) throw err;
         })
       }
@@ -97,8 +97,8 @@ app.put("/send-message", async (req,res)=>{
     dbo.collection("users").find({_id:new ObjectId(info.id2)}).toArray(function(err, result) {
       if(result[0].chats[info.id]){
         //per te
-        result[0].chats[info.id].push({te:info.messaggio})
-        obj2[info.id]=result[0].chats[info.id]
+        result[0].chats[info.id2].push({te:info.messaggio})
+        obj2=result[0].chats
         dbo.collection("users").updateOne({_id:new ObjectId(info.id2)},{$set:{chats:obj2}},(err,result)=>{
           if (err) throw err;
         })
