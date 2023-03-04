@@ -4,6 +4,7 @@ import bodyParser from "body-parser"
 import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
 import {writeFileSync} from 'fs'
+import path from "path"
 
 const PORT = process.env.PORT|| 3001;
 const app=express()
@@ -12,8 +13,23 @@ app.use(bodyParser.urlencoded({extended:true}))
 app.listen(PORT,()=>{
     console.log("run");
 })
-const storage = multer.memoryStorage()
-const upload = multer({ storage: storage });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, 'uploads');
+  },
+  filename: (req, file, cb) => {
+      console.log(file);
+      cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype == 'image/jpeg' || file.mimetype == 'image/png') {
+      cb(null, true);
+  } else {
+      cb(null, false);
+  }
+}
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 //parte delle auto
 app.get("/auto", async (req,res)=>{
@@ -163,20 +179,18 @@ app.put("/dislike", async (req,res)=>{
     })
   })
 })
-app.post('/profile/:id', upload.single('avatar'), function (req, res, next) {
+app.post('/profile/:id', upload.single('avatar'), function (req, res) {
   MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
     if (err) throw err;
     var dbo = db.db("targa");
-    const buffer = Buffer.from(req.file.buffer, "base64");
-    writeFileSync("./images/profileImage"+req.params.id +"."+req.file.mimetype.split("/")[1], buffer)
-    dbo.collection("users").updateOne({_id:new ObjectId(req.params.id)},{$set:{images:{profileImage:"profileImage"+req.params.id +"."+req.file.mimetype.split("/")[1]}}},(err,result)=>{
+    dbo.collection("users").updateOne({_id:new ObjectId(req.params.id)},{$set:{images:{profileImage:req.file.filename}}},(err,result)=>{
       if (err) throw err;
     })
   });
   res.redirect("https://targa-af08a.web.app/")
 })
 app.get('/fetchImage/:file(*)', (req, res) => {
-  res.sendFile(req.params.file,{root:"///opt/render/project/src/"});
+  res.sendFile(req.params.file,{root:"uploads"});
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
