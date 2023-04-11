@@ -3,7 +3,7 @@ import cors from "cors"
 import bodyParser from "body-parser"
 import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
-import {writeFileSync,readFileSync} from 'fs'
+import {readFileSync} from 'fs'
 import path from "path"
 
 const PORT = process.env.PORT|| 3001;
@@ -186,7 +186,7 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res) {
       if (err) throw err;
     })
   })
-  window.history.back()
+  res.redirect("https://targa-af08a.web.app/")
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
