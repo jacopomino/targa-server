@@ -3,7 +3,7 @@ import cors from "cors"
 import bodyParser from "body-parser"
 import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
-import {writeFileSync} from 'fs'
+import {writeFileSync,readFileSync} from 'fs'
 import path from "path"
 
 const PORT = process.env.PORT|| 3001;
@@ -18,7 +18,6 @@ const storage = multer.diskStorage({
       cb(null, 'uploads');
   },
   filename: (req, file, cb) => {
-      console.log(file);
       cb(null, Date.now() + path.extname(file.originalname));
   }
 });
@@ -183,14 +182,11 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res) {
   MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
     if (err) throw err;
     var dbo = db.db("targa");
-    dbo.collection("users").updateOne({_id:new ObjectId(req.params.id)},{$set:{images:{profileImage:req.file.filename}}},(err,result)=>{
+    dbo.collection("users").updateOne({_id:new ObjectId(req.params.id)},{$set:{images:{profileImage:readFileSync(req.file.path).toString("base64")}}},(err,result)=>{
       if (err) throw err;
     })
-  });
-  res.redirect("https://targa-af08a.web.app/")
-})
-app.get('/fetchImage/:file(*)', (req, res) => {
-  res.sendFile(req.params.file,{root:"uploads"});
+  })
+  window.history.back()
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
