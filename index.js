@@ -5,14 +5,29 @@ import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
 import {readFileSync} from 'fs'
 import path from "path"
+import Pusher from "pusher"
+import PushNotifications from "@pusher/push-notifications-server"
 
-const PORT = process.env.PORT|| 3001;
+const PORT = 4000;
 const app=express()
 app.use(cors())
 app.use(bodyParser.urlencoded({extended:true}))
 app.listen(PORT,()=>{
     console.log("run");
 })
+//per i messaggi
+const pusher = new Pusher({
+  appId: "1601207",
+  key: "5b70e3aa9650450c2526",
+  secret: "b66d5e00a89149606d52",
+  cluster: "eu",
+  useTLS: true
+});
+const beamsClient = new PushNotifications({
+  instanceId: "f564d110-864e-411a-bd4d-2432c9cbb84c",
+  secretKey: "AF44C0D0CE2A3EE3755C8472FC8390F80EBC4E90F9683EDD41F5039B4E5D1E37",
+});
+//per le immagini
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
       cb(null, 'uploads');
@@ -228,3 +243,73 @@ app.put("/follow", async (req,res)=>{
     })
   })
 })
+app.post('/send-notification', (req, res) => {
+  let info=JSON.parse(Object.keys(req.body)[0]);
+  // Invia la notifica al canale privato dell'utente specifico
+  pusher.trigger(info.id+info.id2, "my-event", {
+    message: info.messaggio
+  });
+  const beamsClient = new PushNotifications({
+    instanceId: 'f564d110-864e-411a-bd4d-2432c9cbb84c',
+    secretKey: 'AF44C0D0CE2A3EE3755C8472FC8390F80EBC4E90F9683EDD41F5039B4E5D1E37'
+  });
+  beamsClient.publishToInterests([info.id+info.id2], {
+    apns: {
+      aps: {
+        alert: 'Hello!'
+      }
+    },
+    fcm: {
+      notification: {
+        title: 'Hello',
+        body: 'Hello, world!'
+      }
+    }
+  }).then((publishResponse) => {
+    console.log('Just published:', publishResponse.publishId);
+  }).catch((error) => {
+    console.error('Error:', error);
+  });
+  /*beamsClient
+  .publishToUsers([info.id], {
+    apns: {
+      aps: {
+        alert: {
+          title: "Hello",
+          body: "Hello, world!",
+        },
+      },
+    },
+    fcm: {
+      notification: {
+        title: "Hello",
+        body: "Hello, world!",
+      },
+    },
+    web: {
+      notification: {
+        title: "Hello",
+        body: "Hello, world!",
+      },
+    },
+  })
+  .then((publishResponse) => {
+    console.log("Just published:", publishResponse.publishId);
+  })
+  .catch((error) => {
+    console.error("Error:", error);
+  });
+  res.sendStatus(200);*/
+});
+/*app.get("/pusher/beams-auth", function (req, res) {
+  console.log(req.query);
+  // Do your normal auth checks here 🔒
+  const userId = req.query["userId"]; // get it from your auth system
+  const userIDInQueryParam = req.query["user_id"];
+  if (userId != userIDInQueryParam) {
+    res.status(401).send("Inconsistent request");
+  } else {
+    const beamsToken = beamsClient.generateToken(userId);
+    res.send(JSON.stringify(beamsToken));
+  }
+});*/
