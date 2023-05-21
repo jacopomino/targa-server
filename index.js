@@ -5,8 +5,6 @@ import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
 import {readFileSync} from 'fs'
 import path from "path"
-import Pusher from "pusher"
-import PushNotifications from "@pusher/push-notifications-server"
 
 const PORT = 4000;
 const app=express()
@@ -15,18 +13,7 @@ app.use(bodyParser.urlencoded({extended:true}))
 app.listen(PORT,()=>{
     console.log("run");
 })
-//per i messaggi
-const pusher = new Pusher({
-  appId: "1601207",
-  key: "5b70e3aa9650450c2526",
-  secret: "b66d5e00a89149606d52",
-  cluster: "eu",
-  useTLS: true
-});
-const beamsClient = new PushNotifications({
-  instanceId: "f564d110-864e-411a-bd4d-2432c9cbb84c",
-  secretKey: "AF44C0D0CE2A3EE3755C8472FC8390F80EBC4E90F9683EDD41F5039B4E5D1E37",
-});
+
 //per le immagini
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -201,7 +188,38 @@ app.post('/profile/:id', upload.single('avatar'), function (req, res) {
       if (err) throw err;
     })
   })
-  res.redirect("https://targa-af08a.web.app/")
+  res.redirect("https://targa-af08a.web.app/modifica")
+})
+app.post('/post/:id', upload.single('avatar'), function (req, res) {
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("users").updateOne({_id:new ObjectId(req.params.id)},{$push:{post:{id:req.file.path.replace(".jpg","").substring(8,req.file.path.replace(".jpg","").length),postImage:readFileSync(req.file.path).toString("base64")}}},(err,result)=>{
+      if (err) throw err;
+    })
+  })
+  res.redirect("http://localhost:3000/post/"+req.file.path.replace(".jpg","").substring(8,req.file.path.replace(".jpg","").length))
+})
+app.put('/updatePost', upload.single('avatar'), function (req, res) {
+  let info=JSON.parse(Object.keys(req.body)[0]);
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("users").updateOne({_id:new ObjectId(info.id),"post.id":info.postid},{$set:{"post.$.commento":info.commento}},(err,result)=>{
+      if (err) throw err;
+    })
+  })
+})
+app.put("/deletePost", async (req,res)=>{
+  let info=JSON.parse(Object.keys(req.body)[0]);
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$pull:{post:{id:info.postid}}},(err,result)=>{
+      if (err) throw err;
+      res.send(result)
+    })
+  });
 })
 app.put("/coordinate", async (req,res)=>{
   let info=JSON.parse(Object.keys(req.body)[0]);
@@ -243,73 +261,3 @@ app.put("/follow", async (req,res)=>{
     })
   })
 })
-app.post('/send-notification', (req, res) => {
-  let info=JSON.parse(Object.keys(req.body)[0]);
-  // Invia la notifica al canale privato dell'utente specifico
-  pusher.trigger(info.id+info.id2, "my-event", {
-    message: info.messaggio
-  });
-  const beamsClient = new PushNotifications({
-    instanceId: 'f564d110-864e-411a-bd4d-2432c9cbb84c',
-    secretKey: 'AF44C0D0CE2A3EE3755C8472FC8390F80EBC4E90F9683EDD41F5039B4E5D1E37'
-  });
-  beamsClient.publishToInterests([info.id+info.id2], {
-    apns: {
-      aps: {
-        alert: 'Hello!'
-      }
-    },
-    fcm: {
-      notification: {
-        title: 'Hello',
-        body: 'Hello, world!'
-      }
-    }
-  }).then((publishResponse) => {
-    console.log('Just published:', publishResponse.publishId);
-  }).catch((error) => {
-    console.error('Error:', error);
-  });
-  /*beamsClient
-  .publishToUsers([info.id], {
-    apns: {
-      aps: {
-        alert: {
-          title: "Hello",
-          body: "Hello, world!",
-        },
-      },
-    },
-    fcm: {
-      notification: {
-        title: "Hello",
-        body: "Hello, world!",
-      },
-    },
-    web: {
-      notification: {
-        title: "Hello",
-        body: "Hello, world!",
-      },
-    },
-  })
-  .then((publishResponse) => {
-    console.log("Just published:", publishResponse.publishId);
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-  });
-  res.sendStatus(200);*/
-});
-/*app.get("/pusher/beams-auth", function (req, res) {
-  console.log(req.query);
-  // Do your normal auth checks here 🔒
-  const userId = req.query["userId"]; // get it from your auth system
-  const userIDInQueryParam = req.query["user_id"];
-  if (userId != userIDInQueryParam) {
-    res.status(401).send("Inconsistent request");
-  } else {
-    const beamsToken = beamsClient.generateToken(userId);
-    res.send(JSON.stringify(beamsToken));
-  }
-});*/
