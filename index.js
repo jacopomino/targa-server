@@ -198,7 +198,7 @@ app.post('/post/:id', upload.single('avatar'), function (req, res) {
       if (err) throw err;
     })
   })
-  res.redirect("http://localhost:3000/post/"+req.file.path.replace(".jpg","").substring(8,req.file.path.replace(".jpg","").length))
+  setTimeout(()=>res.redirect("https://targa-af08a.web.app/post/"+req.file.path.replace(".jpg","").substring(8,req.file.path.replace(".jpg","").length)),1000)
 })
 app.put('/updatePost', upload.single('avatar'), function (req, res) {
   let info=JSON.parse(Object.keys(req.body)[0]);
