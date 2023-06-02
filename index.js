@@ -3,8 +3,9 @@ import cors from "cors"
 import bodyParser from "body-parser"
 import { MongoClient,ObjectId} from "mongodb"
 import multer from "multer"
-import {readFileSync} from 'fs'
+import {readFileSync,createReadStream} from 'fs'
 import path from "path"
+import { parse } from "csv-parse";
 
 const PORT = 4000;
 const app=express()
@@ -259,5 +260,47 @@ app.put("/follow", async (req,res)=>{
         })
       }
     })
+  })
+})
+app.get("/gasPrezzo", async (req,res)=>{
+  let x=[]
+  createReadStream("./prezzo.csv")
+  .pipe(parse({ delimiter: ",", from_line: 3 }))
+  .on("data", function (row) {
+    x.push({
+      id:row[0].split(";")[0],
+      type:row[0].split(";")[1],
+      prezzo:row[0].split(";")[2],
+    });
+  })
+  .on("error", function (error) {
+    console.log(error.message);
+  })
+  .on("end", function () {
+    res.send(x);
+    console.log("finished");
+  })
+})
+app.get("/gasAnagrafica", async (req,res)=>{
+  let x=[]
+  createReadStream("./anagrafica.csv")
+  .pipe(parse({ delimiter: ",", from_line: 3 }))
+  .on("data", function (row) {
+    x.push({
+      id:row[0].split(";")[0],
+      gestore:row[0].split(";")[1],
+      bandiera:row[0].split(";")[2],
+      indirizzo:row[0].split(";")[5],
+      comune:row[0].split(";")[6],
+      latitudine:row[0].split(";")[8],
+      longitudine:row[0].split(";")[9],
+    });
+  })
+  .on("error", function (error) {
+    console.log(error.message);
+  })
+  .on("end", function () {
+    res.send(x);
+    console.log("finished");
   })
 })
