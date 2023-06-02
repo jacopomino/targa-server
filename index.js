@@ -98,21 +98,21 @@ app.put("/send-message", async (req,res)=>{
       if(result[0].chats){
         if(result[0].chats[info.id2]){
           //per me
-          result[0].chats[info.id2].push({me:info.messaggio})
+          result[0].chats[info.id2].push({me:info.messaggio,date:info.date,time:info.time})
           obj=result[0].chats
           dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj}},(err,result)=>{
             if (err) throw err;
           })
         }else{
           //per me
-          result[0].chats[info.id2]=[{me:info.messaggio}]
+          result[0].chats[info.id2]=[{me:info.messaggio,date:info.date,time:info.time}]
           obj=(result[0].chats);
           dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj}},(err,result)=>{
             if (err) throw err;
           })
         }
       }else{
-        obj[info.id2]=[{me:info.messaggio}]
+        obj[info.id2]=[{me:info.messaggio,date:info.date,time:info.time}]
         dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$set:{chats:obj}},(err,result)=>{
           if (err) throw err;
         })
@@ -122,21 +122,21 @@ app.put("/send-message", async (req,res)=>{
       if(result[0].chats){
         if(result[0].chats[info.id]){
           //per te
-          result[0].chats[info.id].push({te:info.messaggio})
+          result[0].chats[info.id].push({te:info.messaggio,date:info.date,time:info.time})
           obj2=result[0].chats
           dbo.collection("users").updateOne({_id:new ObjectId(info.id2)},{$set:{chats:obj2}},(err,result)=>{
             if (err) throw err;
           })
         }else{
           //per te
-          result[0].chats[info.id]=[{te:info.messaggio}]
+          result[0].chats[info.id]=[{te:info.messaggio,date:info.date,time:info.time}]
           obj2=(result[0].chats);
           dbo.collection("users").updateOne({_id:new ObjectId(info.id2)},{$set:{chats:obj2}},(err,result)=>{
             if (err) throw err;
           })
         }
       }else{
-        obj2[info.id]=[{te:info.messaggio}]
+        obj2[info.id]=[{te:info.messaggio,date:info.date,time:info.time}]
         dbo.collection("users").updateOne({_id:new ObjectId(info.id2)},{$set:{chats:obj2}},(err,result)=>{
           if (err) throw err;
         })
