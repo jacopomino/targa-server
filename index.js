@@ -6,6 +6,7 @@ import multer from "multer"
 import {readFileSync,createReadStream} from 'fs'
 import path from "path"
 import { parse } from "csv-parse";
+import axios from "axios"
 
 const PORT = 4000;
 const app=express()
@@ -302,5 +303,22 @@ app.get("/gasAnagrafica", async (req,res)=>{
   .on("end", function () {
     res.send(x);
     console.log("finished");
+  })
+})
+app.get("/gas", async (req,res)=>{
+  axios.get("https://targa.onrender.com/gasAnagrafica").then((response)=>{
+    axios.get("https://targa.onrender.com/gasPrezzo").then((response2)=>{
+      response2.data.map(row=>{
+        var foundIndex=response.data.findIndex(item=>{
+          return item.id===row.id
+        })
+        response.data[foundIndex][row.type]=row.prezzo
+      })
+      res.send(response.data)
+    }).catch((error) => {
+      console.log(error);
+    });
+  }).catch((error) => {
+    console.log(error);
   })
 })
