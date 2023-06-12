@@ -322,3 +322,36 @@ app.get("/gas", async (req,res)=>{
     console.log(error);
   })
 })
+app.get("/allAuto", async (req,res)=>{
+  const options={
+    headers:{Authorization: 'Bearer 647decb8a6c2e83d6f76edb9'}
+  }
+  axios.get("https://targa.openapi.it/auto/zr567zy",options).then((response)=>{
+    console.log(response.data);
+  }).catch((error) => {
+    console.log(error);
+  })
+})
+app.put("/classifica", async (req,res)=>{
+  let info=JSON.parse(Object.keys(req.body)[0]);
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$push:{classifica:{id:new ObjectId(),marca:info.marca,modello:info.modello,valutazione:info.value}}},(err,result)=>{
+      if (err) throw err;
+      res.send(result)
+    })
+  });
+})
+app.put("/deleteClassifica", async (req,res)=>{
+  let info=JSON.parse(Object.keys(req.body)[0]);
+  MongoClient.connect("mongodb+srv://apo:jac2001min@cluster0.pdunp.mongodb.net/?retryWrites=true&w=majority", function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("targa");
+    dbo.collection("users").updateOne({_id:new ObjectId(info.id)},{$pull:{classifica:{id:new ObjectId(info.classificaid)}}},(err,result)=>{
+      if (err) throw err;
+      console.log(result);
+      res.send(result)
+    })
+  });
+})
