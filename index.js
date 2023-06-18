@@ -7,6 +7,8 @@ import {readFileSync,createReadStream} from 'fs'
 import path from "path"
 import { parse } from "csv-parse";
 import axios from "axios"
+import https from "https"
+
 
 const PORT = 4000;
 const app=express()
@@ -264,23 +266,25 @@ app.put("/follow", async (req,res)=>{
   })
 })
 app.get("/gasPrezzo", async (req,res)=>{
-  let x=[]
-  createReadStream("./prezzo.csv")
-  .pipe(parse({ delimiter: ",", from_line: 3 }))
-  .on("data", function (row) {
-    x.push({
-      id:row[0].split(";")[0],
-      type:row[0].split(";")[1],
-      prezzo:row[0].split(";")[2],
-    });
-  })
-  .on("error", function (error) {
-    console.log(error.message);
-  })
-  .on("end", function () {
-    res.send(x);
-    console.log("finished");
-  })
+  const url = 'https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv';
+  https.get(url, (response) => {
+    let x = [];
+    response.pipe(parse({ delimiter: ",", from_line: 3 }))
+    .on("data", function (row) {
+      x.push({
+        id:row[0].split(";")[0],
+        type:row[0].split(";")[1],
+        prezzo:row[0].split(";")[2],
+      });
+    })
+    .on("end", function () {
+      res.send(x);
+      console.log("finished");
+    })
+
+  }).on('error', (error) => {
+    console.error(`Error retrieving data: ${error}`);
+  });
 })
 app.get("/gasAnagrafica", async (req,res)=>{
   let x=[]
@@ -318,16 +322,6 @@ app.get("/gas", async (req,res)=>{
     }).catch((error) => {
       console.log(error);
     });
-  }).catch((error) => {
-    console.log(error);
-  })
-})
-app.get("/allAuto", async (req,res)=>{
-  const options={
-    headers:{Authorization: 'Bearer 647decb8a6c2e83d6f76edb9'}
-  }
-  axios.get("https://targa.openapi.it/auto/zr567zy",options).then((response)=>{
-    console.log(response.data);
   }).catch((error) => {
     console.log(error);
   })
